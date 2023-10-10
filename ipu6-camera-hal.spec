@@ -114,6 +114,10 @@ fi
 
 
 %changelog
+* Tue Oct 10 2023 Hans de Goede <hdegoede@redhat.com> - 0.0-15.20230208git884b81a
+- Update /lib/modprobe.d/intel_ipu6_isys.conf for newer versions of
+  intel-ipu6-kmod creating up to 8 /dev/video# nodes
+
 * Tue Aug 08 2023 Kate Hsuan <hpa@redhat.com> - 0.0-14.20230208git884b81a
 - Updated to commit 884b81aae0ea19a974eb8ccdaeef93038136bdd4
 
