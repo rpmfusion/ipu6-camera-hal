@@ -1,5 +1,5 @@
-%global commit 884b81aae0ea19a974eb8ccdaeef93038136bdd4
-%global commitdate 20230208
+%global commit da2e2821244f21b95bcb37a1271bf73360c4669e
+%global commitdate 20240226
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 # We want to specify multiple separate build-dirs for the different variants
@@ -9,7 +9,7 @@ Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        15.%{commitdate}git%{shortcommit}%{?dist}
+Release:        16.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Source0:        https://github.com/intel/%{name}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
@@ -19,6 +19,7 @@ Source3:        v4l2-relayd-tgl
 Source4:        intel_ipu6_isys.conf
 
 # Patches
+Patch01:        0001-Patch-lib-path-to-align-fedora-path-usage.patch
 
 BuildRequires:  systemd-rpm-macros
 BuildRequires:  ipu6-camera-bins-devel
@@ -47,40 +48,58 @@ This provides the necessary header files for IPU6 HAL development.
 
 
 %build
-for i in ipu6 ipu6ep; do
+for i in ipu_tgl ipu_adl ipu_mtl; do
   export PKG_CONFIG_PATH=%{_libdir}/$i/pkgconfig/
   export LDFLAGS="$RPM_LD_FLAGS -Wl,-rpath=%{_libdir}/$i"
   sed -i.orig "s|/usr/share/defaults/etc/camera/|/usr/share/defaults/etc/$i/|g" \
     src/platformdata/PlatformData.h
   mkdir $i && pushd $i
-  %cmake -DCMAKE_BUILD_TYPE=Release -DIPU_VER=$i \
-         -DENABLE_VIRTUAL_IPU_PIPE=OFF -DUSE_PG_LITE_PIPE=ON \
-         -DUSE_STATIC_GRAPH=OFF ..
+  if [ $i = "ipu_tgl" ]; then
+    IPU_VERSION=ipu6
+  elif [ $i = "ipu_adl" ]; then
+    IPU_VERSION=ipu6ep
+  elif [ $i = "ipu_mtl" ]; then
+    IPU_VERSION=ipu6epmtl
+  else
+    IPU_VERSION=ipu
+  fi
+  %cmake -DCMAKE_BUILD_TYPE=Release -DIPU_VER=$IPU_VERSION \
+         -DBUILD_CAMHAL_TESTS=OFF -DUSE_PG_LITE_PIPE=ON ..
   %make_build
+  popd
+
+  mkdir $i"_adaptor" && pushd $i"_adaptor"
+  %cmake ../src/hal/hal_adaptor
   popd
   mv src/platformdata/PlatformData.h.orig src/platformdata/PlatformData.h
 done
 
 
 %install
-for i in ipu6 ipu6ep; do
+for i in ipu_tgl ipu_adl ipu_mtl; do
   pushd $i
   %make_install
   mkdir %{buildroot}%{_libdir}/$i
-  mv %{buildroot}%{_libdir}/libcamhal.so %{buildroot}%{_libdir}/$i/
+  mv %{buildroot}%{_usr}/lib/libcamhal.so %{buildroot}%{_libdir}/$i/
   mv %{buildroot}%{_datadir}/defaults/etc/camera %{buildroot}%{_datadir}/defaults/etc/$i
+  popd
+  pushd $i"_adaptor"
+  %make_install
+  mv %{buildroot}%{_usr}/lib64/libhal_adaptor.so %{buildroot}%{_libdir}/$i/
   popd
 done
 
 # We don't want static libs
-rm %{buildroot}%{_libdir}/libcamhal.a
+rm %{buildroot}%{_usr}/lib/libcamhal.a
 
 # symbolic link + udev is used to resolve the library name conflict. 
 ln -sf %{_rundir}/libcamhal.so %{buildroot}%{_libdir}/libcamhal.so
+ln -sf %{_rundir}/libhal_adaptor.so %{buildroot}%{_libdir}/libhal_adaptor.so
 install -p -m 0644 -D %{SOURCE1} %{buildroot}%{_udevrulesdir}/60-intel-ipu6.rules
 
 # Make sure libcamhal.so can be found when building code on systems without an IPU6
-sed -i -e "s|}/lib64|}/lib64/ipu6|" %{buildroot}%{_libdir}/pkgconfig/libcamhal.pc
+sed -i -e "s|\${prefix}/lib|\${prefix}/lib64/ipu_tgl|g" %{buildroot}%{_libdir}/pkgconfig/libcamhal.pc
+sed -i -e "s|\${prefix}/lib|\${prefix}/lib64/ipu_tgl|g" %{buildroot}%{_libdir}/pkgconfig/hal_adaptor.pc
 
 # v4l2-relayd configuration examples
 install -p -D -m 0644 %{SOURCE2} %{buildroot}%{_datadir}/defaults/etc/ipu6ep/v4l2-relayd
@@ -102,7 +121,9 @@ fi
 %files
 %license LICENSE
 %{_libdir}/*/libcamhal.so
+%{_libdir}/*/libhal_adaptor.so
 %{_libdir}/libcamhal.so
+%{_libdir}/libhal_adaptor.so
 %{_datadir}/defaults/etc/*
 %{_modprobedir}/intel_ipu6_isys.conf
 %{_udevrulesdir}/60-intel-ipu6.rules
@@ -110,10 +131,16 @@ fi
 
 %files devel
 %{_includedir}/libcamhal
+%{_includedir}/hal_adaptor
 %{_libdir}/pkgconfig/libcamhal.pc
+%{_libdir}/pkgconfig/hal_adaptor.pc
 
 
 %changelog
+* Tue Mar 12 2024 Kate Hsuan <hpa@redhat.com> - 0.0-16.20230208git884b81a
+- Update to the latest upstream commit
+- Include a new library hal_adaptor.so
+
 * Tue Oct 10 2023 Hans de Goede <hdegoede@redhat.com> - 0.0-15.20230208git884b81a
 - Update /lib/modprobe.d/intel_ipu6_isys.conf for newer versions of
   intel-ipu6-kmod creating up to 8 /dev/video# nodes
