@@ -31,6 +31,7 @@ BuildRequires:  cmake
 BuildRequires:  gcc
 BuildRequires:  g++
 BuildRequires:  expat-devel
+BuildRequires:  libdrm-devel
 
 ExclusiveArch:  x86_64
 
