@@ -1,0 +1,7 @@
+# Upstream provides no docs
+addFilter("W: no-documentation")
+# A bunch of the sensor cfg and xml files are available through 2 different paths, meh
+addFilter("W: files-duplicate")
+addFilter("E: files-duplicated-waste")
+# libcamhal.so links are also in main pkg because libhal_adaptor opens them
+addFilter("W: devel-file-in-non-devel-package")

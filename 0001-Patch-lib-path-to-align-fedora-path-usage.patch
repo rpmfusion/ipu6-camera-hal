@@ -17,9 +17,9 @@ index e14418a..17e9697 100644
  
 -    std::string libName = "/usr/lib/";
 +    std::string libName = "/usr/lib64/";
-     if (strstr(pciID, "0xa75d") != nullptr /* RPL */ ||
-         strstr(pciID, "0x462e") != nullptr /* ADLN */ ||
-         strstr(pciID, "0x465d") != nullptr /* ADLP */) {
+     if (IPU6_UPSTREAM) {
+         if (strstr(pciID, "0x7d19") != nullptr /* MTL */) {
+             libName += "ipu_mtl_upstream";
 -- 
 2.44.0
 
