@@ -1,5 +1,6 @@
-# Upstream provides no docs
+# there are no docs
 addFilter("W: no-documentation")
+addFilter("W: no-manual-page-for-binary")
 # A bunch of the sensor cfg and xml files are available through 2 different paths, meh
 addFilter("W: files-duplicate")
 addFilter("E: files-duplicated-waste")

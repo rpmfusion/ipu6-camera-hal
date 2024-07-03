@@ -9,7 +9,7 @@ Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        18.%{commitdate}git%{shortcommit}%{?dist}
+Release:        19.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Source0:        https://github.com/intel/%{name}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
@@ -17,6 +17,7 @@ Source1:        60-intel-ipu6.rules
 Source2:        v4l2-relayd-adl
 Source3:        v4l2-relayd-tgl
 Source4:        icamera_ipu6_isys.conf
+Source5:        ipu6-driver-select.sh
 
 # Patches
 Patch01:        0001-Patch-lib-path-to-align-fedora-path-usage.patch
@@ -108,8 +109,15 @@ install -p -m 0644 %{SOURCE3} %{buildroot}%{_datadir}/defaults/etc/camera/ipu_tg
 # Make kmod-intel-ipu6 use /dev/video7 leaving /dev/video0 for loopback
 install -p -D -m 0644 %{SOURCE4} %{buildroot}%{_modprobedir}/icamera_ipu6_isys.conf
 
+# Script to switch between proprietary and foss ipu6 stacks
+install -p -D -m 0755 %{SOURCE5} %{buildroot}%{_bindir}/ipu6-driver-select
 
-%post
+
+%posttrans
+# posttrans to ensure that v4l2-relayd service enabled by ipu6-driver-select is installed
+if [ ! -f /etc/modprobe.d/ipu6-driver-select.conf ]; then
+    /usr/bin/ipu6-driver-select proprietary
+fi
 # skip triggering if udevd isn't even accessible, e.g. containers or
 # rpm-ostree-based systems
 if [ -S /run/udev/control ]; then
@@ -120,6 +128,7 @@ fi
 
 %files
 %license LICENSE
+%{_bindir}/ipu6-driver-select
 # per variant libcamhal.so links are also in main pkg because libhal_adaptor opens them
 %{_libdir}/*/libcamhal.so*
 %{_libdir}/libhal_adaptor.so.*
@@ -135,6 +144,9 @@ fi
 
 
 %changelog
+* Wed Jul  3 2024 Hans de Goede <hdegoede@redhat.com> - 0.0-19.20240509git289e645
+- Add ipu6-driver-select script to switch between proprietary and foss stacks
+
 * Mon Jun 24 2024 Hans de Goede <hdegoede@redhat.com> - 0.0-18.20240509git289e645
 - Update to commit 289e645dffbd0ea633f10bb4f93855f1e4429e9a
 - Update /lib/modprobe.d/intel_ipu6_isys.conf for the out of tree module
