@@ -1,5 +1,5 @@
-%global commit da2e2821244f21b95bcb37a1271bf73360c4669e
-%global commitdate 20240226
+%global commit 289e645dffbd0ea633f10bb4f93855f1e4429e9a
+%global commitdate 20240509
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 # We want to specify multiple separate build-dirs for the different variants
@@ -9,28 +9,34 @@ Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        16.%{commitdate}git%{shortcommit}%{?dist}
+Release:        20.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Source0:        https://github.com/intel/%{name}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
 Source1:        60-intel-ipu6.rules
 Source2:        v4l2-relayd-adl
 Source3:        v4l2-relayd-tgl
-Source4:        intel_ipu6_isys.conf
+Source4:        icamera_ipu6_isys.conf
+Source5:        ipu6-driver-select.sh
 
 # Patches
 Patch01:        0001-Patch-lib-path-to-align-fedora-path-usage.patch
+# https://github.com/intel/ipu6-camera-hal/pull/113
+Patch02:        0001-CMakeLists-fixes.patch
+# https://github.com/intel/ipu6-camera-hal/pull/114
+Patch03:        0001-MediaControl-Dymically-set-mainline-IVSC-media-entit.patch
 
 BuildRequires:  systemd-rpm-macros
-BuildRequires:  ipu6-camera-bins-devel
+BuildRequires:  ipu6-camera-bins-devel >= 0.0-11
 BuildRequires:  cmake
 BuildRequires:  gcc
 BuildRequires:  g++
 BuildRequires:  expat-devel
+BuildRequires:  libdrm-devel
 
 ExclusiveArch:  x86_64
 
-Requires:       ipu6-camera-bins
+Requires:       ipu6-camera-bins >= 0.0-11
 
 %description
 ipu6-camera-hal provides the basic hardware access APIs for IPU6.
@@ -45,14 +51,14 @@ This provides the necessary header files for IPU6 HAL development.
 
 %prep
 %autosetup -p1 -n %{name}-%{commit}
+sed -i "s|/etc/camera/|/usr/share/defaults/etc/camera/|g" \
+  src/platformdata/PlatformData.h
 
 
 %build
 for i in ipu_tgl ipu_adl ipu_mtl; do
   export PKG_CONFIG_PATH=%{_libdir}/$i/pkgconfig/
   export LDFLAGS="$RPM_LD_FLAGS -Wl,-rpath=%{_libdir}/$i"
-  sed -i.orig "s|/usr/share/defaults/etc/camera/|/usr/share/defaults/etc/$i/|g" \
-    src/platformdata/PlatformData.h
   mkdir $i && pushd $i
   if [ $i = "ipu_tgl" ]; then
     IPU_VERSION=ipu6
@@ -64,52 +70,54 @@ for i in ipu_tgl ipu_adl ipu_mtl; do
     IPU_VERSION=ipu
   fi
   %cmake -DCMAKE_BUILD_TYPE=Release -DIPU_VER=$IPU_VERSION \
+         -DCMAKE_INSTALL_SUB_PATH:PATH="$i" \
+         -DCMAKE_INSTALL_SYSCONFDIR:PATH="share/defaults/etc" \
          -DBUILD_CAMHAL_TESTS=OFF -DUSE_PG_LITE_PIPE=ON ..
   %make_build
   popd
-
-  mkdir $i"_adaptor" && pushd $i"_adaptor"
-  %cmake ../src/hal/hal_adaptor
-  popd
-  mv src/platformdata/PlatformData.h.orig src/platformdata/PlatformData.h
 done
+
+# hal_adaptor.so dispatches between different libcamhal.so builds, only build it once
+mkdir hal_adaptor && pushd hal_adaptor
+%cmake ../src/hal/hal_adaptor
+%make_build
+popd
 
 
 %install
 for i in ipu_tgl ipu_adl ipu_mtl; do
   pushd $i
   %make_install
-  mkdir %{buildroot}%{_libdir}/$i
-  mv %{buildroot}%{_usr}/lib/libcamhal.so %{buildroot}%{_libdir}/$i/
-  mv %{buildroot}%{_datadir}/defaults/etc/camera %{buildroot}%{_datadir}/defaults/etc/$i
-  popd
-  pushd $i"_adaptor"
-  %make_install
-  mv %{buildroot}%{_usr}/lib64/libhal_adaptor.so %{buildroot}%{_libdir}/$i/
+  rm %{buildroot}%{_libdir}/$i/libcamhal.a
+  # new icamerasrc must use hal_adaptor, drop libcamhal.pc
+  rm -r %{buildroot}%{_libdir}/$i/pkgconfig
   popd
 done
 
-# We don't want static libs
-rm %{buildroot}%{_usr}/lib/libcamhal.a
+pushd hal_adaptor
+%make_install
+popd
 
-# symbolic link + udev is used to resolve the library name conflict. 
-ln -sf %{_rundir}/libcamhal.so %{buildroot}%{_libdir}/libcamhal.so
-ln -sf %{_rundir}/libhal_adaptor.so %{buildroot}%{_libdir}/libhal_adaptor.so
+# udev-rules set the ipu_xxx /run/v4l2-relayd cfg link + /dev/ipu-psys0 uaccess
 install -p -m 0644 -D %{SOURCE1} %{buildroot}%{_udevrulesdir}/60-intel-ipu6.rules
 
-# Make sure libcamhal.so can be found when building code on systems without an IPU6
-sed -i -e "s|\${prefix}/lib|\${prefix}/lib64/ipu_tgl|g" %{buildroot}%{_libdir}/pkgconfig/libcamhal.pc
-sed -i -e "s|\${prefix}/lib|\${prefix}/lib64/ipu_tgl|g" %{buildroot}%{_libdir}/pkgconfig/hal_adaptor.pc
-
-# v4l2-relayd configuration examples
-install -p -D -m 0644 %{SOURCE2} %{buildroot}%{_datadir}/defaults/etc/ipu6ep/v4l2-relayd
-install -p -D -m 0644 %{SOURCE3} %{buildroot}%{_datadir}/defaults/etc/ipu6/v4l2-relayd
+# v4l2-relayd configuration examples (mtl uses same config as adl)
+install -p -m 0644 %{SOURCE2} %{buildroot}%{_datadir}/defaults/etc/camera/ipu_adl/v4l2-relayd
+install -p -m 0644 %{SOURCE2} %{buildroot}%{_datadir}/defaults/etc/camera/ipu_mtl/v4l2-relayd
+install -p -m 0644 %{SOURCE3} %{buildroot}%{_datadir}/defaults/etc/camera/ipu_tgl/v4l2-relayd
 
 # Make kmod-intel-ipu6 use /dev/video7 leaving /dev/video0 for loopback
-install -p -D -m 0644 %{SOURCE4} %{buildroot}%{_modprobedir}/intel_ipu6_isys.conf
+install -p -D -m 0644 %{SOURCE4} %{buildroot}%{_modprobedir}/icamera_ipu6_isys.conf
+
+# Script to switch between proprietary and foss ipu6 stacks
+install -p -D -m 0755 %{SOURCE5} %{buildroot}%{_bindir}/ipu6-driver-select
 
 
-%post
+%posttrans
+# posttrans to ensure that v4l2-relayd service enabled by ipu6-driver-select is installed
+if [ ! -f /etc/modprobe.d/ipu6-driver-select.conf ]; then
+    /usr/bin/ipu6-driver-select proprietary
+fi
 # skip triggering if udevd isn't even accessible, e.g. containers or
 # rpm-ostree-based systems
 if [ -S /run/udev/control ]; then
@@ -120,26 +128,43 @@ fi
 
 %files
 %license LICENSE
-%{_libdir}/*/libcamhal.so
-%{_libdir}/*/libhal_adaptor.so
-%{_libdir}/libcamhal.so
-%{_libdir}/libhal_adaptor.so
-%{_datadir}/defaults/etc/*
-%{_modprobedir}/intel_ipu6_isys.conf
+%{_bindir}/ipu6-driver-select
+# per variant libcamhal.so links are also in main pkg because libhal_adaptor opens them
+%{_libdir}/*/libcamhal.so*
+%{_libdir}/libhal_adaptor.so.*
+%{_datadir}/defaults
+%{_modprobedir}/icamera_ipu6_isys.conf
 %{_udevrulesdir}/60-intel-ipu6.rules
 
 
 %files devel
-%{_includedir}/libcamhal
 %{_includedir}/hal_adaptor
-%{_libdir}/pkgconfig/libcamhal.pc
+%{_libdir}/libhal_adaptor.so
 %{_libdir}/pkgconfig/hal_adaptor.pc
 
 
 %changelog
-* Tue Mar 12 2024 Kate Hsuan <hpa@redhat.com> - 0.0-17.20240226gitda2e282
+* Fri Aug 02 2024 RPM Fusion Release Engineering <sergiomb@rpmfusion.org> - 0.0-20.20240509git289e645
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_41_Mass_Rebuild
+
+* Wed Jul  3 2024 Hans de Goede <hdegoede@redhat.com> - 0.0-19.20240509git289e645
+- Add ipu6-driver-select script to switch between proprietary and foss stacks
+
+* Mon Jun 24 2024 Hans de Goede <hdegoede@redhat.com> - 0.0-18.20240509git289e645
+- Update to commit 289e645dffbd0ea633f10bb4f93855f1e4429e9a
+- Update /lib/modprobe.d/intel_ipu6_isys.conf for the out of tree module
+  being renamed to icamera_ipu6_isys
+- Adjust things for the libraries now having a proper .so.0 soname
+- hal_adaptor.so dispatches between different libcamhal.so builds, only build it once
+- New icamerasrc must use hal_adaptor, drop libcamhal files from -devel
+- Fix ownership of /usr/share/defaults and /usr/share/defaults/etc
+
+* Tue Mar 12 2024 Kate Hsuan <hpa@redhat.com> - 0.0-17.20230208git884b81a
 - Update to the latest upstream commit
 - Include a new library hal_adaptor.so
+
+* Sun Feb 04 2024 RPM Fusion Release Engineering <sergiomb@rpmfusion.org> - 0.0-17.20230208git884b81a
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
 
 * Tue Oct 10 2023 Hans de Goede <hdegoede@redhat.com> - 0.0-16.20230208git884b81a
 - Update /lib/modprobe.d/intel_ipu6_isys.conf for newer versions of
