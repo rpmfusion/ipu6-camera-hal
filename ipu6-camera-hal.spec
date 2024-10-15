@@ -9,7 +9,7 @@ Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        20.%{commitdate}git%{shortcommit}%{?dist}
+Release:        21.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Source0:        https://github.com/intel/%{name}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
@@ -128,6 +128,7 @@ fi
 
 %files
 %license LICENSE
+%ghost %{_sysconfdir}/modprobe.d/ipu6-driver-select.conf
 %{_bindir}/ipu6-driver-select
 # per variant libcamhal.so links are also in main pkg because libhal_adaptor opens them
 %{_libdir}/*/libcamhal.so*
@@ -136,7 +137,6 @@ fi
 %{_modprobedir}/icamera_ipu6_isys.conf
 %{_udevrulesdir}/60-intel-ipu6.rules
 
-
 %files devel
 %{_includedir}/hal_adaptor
 %{_libdir}/libhal_adaptor.so
@@ -144,6 +144,9 @@ fi
 
 
 %changelog
+* Tue Oct 15 2024 Hans de Goede <hdegoede@redhat.com> - 0.0-21.20240509git289e645
+- %%ghost /etc/modprobe.d/ipu6-driver-select.conf
+
 * Fri Aug 02 2024 RPM Fusion Release Engineering <sergiomb@rpmfusion.org> - 0.0-20.20240509git289e645
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_41_Mass_Rebuild
 
