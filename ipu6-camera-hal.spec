@@ -9,7 +9,7 @@ Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        21.%{commitdate}git%{shortcommit}%{?dist}
+Release:        22.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Source0:        https://github.com/intel/%{name}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
@@ -144,6 +144,9 @@ fi
 
 
 %changelog
+* Wed Jan 29 2025 RPM Fusion Release Engineering <sergiomb@rpmfusion.org> - 0.0-22.20240509git289e645
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_42_Mass_Rebuild
+
 * Tue Oct 15 2024 Hans de Goede <hdegoede@redhat.com> - 0.0-21.20240509git289e645
 - %%ghost /etc/modprobe.d/ipu6-driver-select.conf
 
