@@ -18,14 +18,12 @@ fi
 
 case "$1" in
   "foss")
-    echo "blacklist icamera-ipu6" > /etc/modprobe.d/ipu6-driver-select.conf
-    echo "blacklist icamera-ipu6-isys" >> /etc/modprobe.d/ipu6-driver-select.conf
-    echo "blacklist icamera-ipu6-psys" >> /etc/modprobe.d/ipu6-driver-select.conf
+    echo "blacklist intel-ipu6-psys" > /etc/modprobe.d/ipu6-driver-select.conf
     systemctl disable v4l2-relayd.service
     needs_reboot
     ;;
   "proprietary")
-    echo "blacklist intel-ipu6" > /etc/modprobe.d/ipu6-driver-select.conf
+    > /etc/modprobe.d/ipu6-driver-select.conf
     systemctl enable v4l2-relayd.service
     needs_reboot
     ;;
