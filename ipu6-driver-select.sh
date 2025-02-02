@@ -7,8 +7,8 @@ function show_help () {
   exit 1
 }
 
-function needs_reboot () {
-  echo "Reboot your system for the changes to take effect"
+function needs_pipewire_restart () {
+  echo "Run 'systemctl --user restart pipewire' for the changes to take effect"
   exit 0
 }
 
@@ -18,14 +18,12 @@ fi
 
 case "$1" in
   "foss")
-    echo "blacklist intel-ipu6-psys" > /etc/modprobe.d/ipu6-driver-select.conf
-    systemctl disable v4l2-relayd.service
-    needs_reboot
+    systemctl disable --now v4l2-relayd.service
+    needs_pipewire_restart
     ;;
   "proprietary")
-    > /etc/modprobe.d/ipu6-driver-select.conf
-    systemctl enable v4l2-relayd.service
-    needs_reboot
+    systemctl enable --now v4l2-relayd.service
+    needs_pipewire_restart
     ;;
   *)
     show_help

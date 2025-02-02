@@ -6,7 +6,7 @@ Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        23.%{commitdate}git%{shortcommit}%{?dist}
+Release:        24.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Patch1:         0001-Drop-Werror.patch
@@ -72,10 +72,6 @@ install -p -D -m 0755 %{SOURCE4} %{buildroot}%{_bindir}/ipu6-driver-select
 
 
 %posttrans
-# posttrans to ensure that v4l2-relayd service enabled by ipu6-driver-select is installed
-if [ ! -f /etc/modprobe.d/ipu6-driver-select.conf ]; then
-    /usr/bin/ipu6-driver-select proprietary
-fi
 # skip triggering if udevd isn't even accessible, e.g. containers or
 # rpm-ostree-based systems
 if [ -S /run/udev/control ]; then
@@ -86,7 +82,6 @@ fi
 
 %files
 %license LICENSE
-%ghost %attr(644, root, root) %{_sysconfdir}/modprobe.d/ipu6-driver-select.conf
 %{_bindir}/ipu6-driver-select
 %{_libdir}/libcamhal.so.*
 %{_libdir}/libcamhal
@@ -100,6 +95,10 @@ fi
 
 
 %changelog
+* Sun Feb  2 2025 Hans de Goede <hdegoede@redhat.com> - 0.0-24.20241218gitb6f6eeb
+- Drop /etc/modprobe.d/ipu6-driver-select.conf since the out of tree
+  ISP driver and the mainline CSI receiver driver can now co-exist
+
 * Fri Jan 31 2025 Hans de Goede <hdegoede@redhat.com> - 0.0-23.20241218gitb6f6eeb
 - Update to upstream commit b6f6eeb68f06cd0d4a2463b8950847b1b98cebaa
 
