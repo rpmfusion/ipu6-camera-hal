@@ -9,6 +9,8 @@ Version:        0.0
 Release:        23.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
+Patch1:         0001-Drop-Werror.patch
+
 Source0:        https://github.com/intel/%{name}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
 Source1:        60-intel-ipu6.rules
 Source2:        v4l2-relayd-tgl
