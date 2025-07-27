@@ -6,7 +6,7 @@ Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        24.%{commitdate}git%{shortcommit}%{?dist}
+Release:        25.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Patch1:         0001-Drop-Werror.patch
@@ -95,6 +95,9 @@ fi
 
 
 %changelog
+* Sun Jul 27 2025 RPM Fusion Release Engineering <sergiomb@rpmfusion.org> - 0.0-25.20241218gitb6f6eeb
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_43_Mass_Rebuild
+
 * Sun Feb  2 2025 Hans de Goede <hdegoede@redhat.com> - 0.0-24.20241218gitb6f6eeb
 - Drop /etc/modprobe.d/ipu6-driver-select.conf since the out of tree
   ISP driver and the mainline CSI receiver driver can now co-exist
