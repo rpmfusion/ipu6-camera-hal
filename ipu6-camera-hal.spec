@@ -6,10 +6,13 @@ Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        26.%{commitdate}git%{shortcommit}%{?dist}
+Release:        27.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Patch1:         0001-Drop-Werror.patch
+
+# https://github.com/intel/ipu6-camera-hal/pull/160
+Patch101:       0001-config-linux-ipu6-ov01a1s-configs-Adjust-for-new-128.patch
 
 Source0:        https://github.com/intel/%{name}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
 Source1:        60-intel-ipu6.rules
@@ -95,6 +98,9 @@ fi
 
 
 %changelog
+* Wed Nov 12 2025 Kate Hsuan <hpa@redhat.com> - 0.0-27.20250627gitc933525
+- Change the output size of ov01a1s to 1288x800
+
 * Wed Sep 10 2025 Kate Hsuan <hpa@redhat.com> - 0.0-26.20250627gitc933525
 - Update to the upstream commit c933525
 

@@ -1,0 +1,212 @@
+From eb451ec14776506225e288f18d2342da75688593 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hansg@kernel.org>
+Date: Tue, 28 Oct 2025 20:44:15 +0100
+Subject: [PATCH] config/linux/ipu6: ov01a1s configs: Adjust for new 1288x800
+ ov01a1s kernel driver output size
+
+There is a patch series pending upstream:
+
+https://lore.kernel.org/linux-media/20251014174033.20534-1-hansg@kernel.org/
+
+To add ov01a1s support to the mainline kernel. The mainline support will
+have a slightly different output-size with a maximum output width of 1288
+as the mainline code keeps a 4x4 border reserved to be able to shift
+the window around to keep the Bayer pattern unchanged when doing flipping.
+
+And with the mainline driver the output height must be a multiple of 4
+because the RGBI Bayer patern on the ov01a1s sensor repeats every 4 lines.
+
+There also is a pending pull-request to change the output-size of
+the ov01a1s driver in intel-ipu6-drivers to match the mainline driver:
+
+https://github.com/intel/ipu6-drivers/pull/395
+
+This commit adjusts the graph_settings_ov01a1s.xml and ov01a1s-uf.xml
+config files to work with the new 1288x800 output size.
+
+Signed-off-by: Hans de Goede <hansg@kernel.org>
+---
+ .../ipu6/gcss/graph_settings_ov01a1s.xml      | 48 +++++++++----------
+ config/linux/ipu6/sensors/ov01a1s-uf.xml      | 20 ++++----
+ 2 files changed, 34 insertions(+), 34 deletions(-)
+
+diff --git a/config/linux/ipu6/gcss/graph_settings_ov01a1s.xml b/config/linux/ipu6/gcss/graph_settings_ov01a1s.xml
+index 0f84909..c89909d 100644
+--- a/config/linux/ipu6/gcss/graph_settings_ov01a1s.xml
++++ b/config/linux/ipu6/gcss/graph_settings_ov01a1s.xml
+@@ -21,18 +21,18 @@ limitations under the License.
+     <pll_configs>
+         <pll_config bpp="0" pixel_rate_csi="0" pixel_rate="0" id="0"/>
+     </pll_configs>
+-    <sensor_mode name="OV01A1S_30fps" id="0" width="1296" height="800" fps="30" min_llp="0" min_fll="0" min_fps="0" max_out_width="1296" max_out_height="800" bpp="10" sensor_type="RGB_IR" pdaf_type="PDAFNone" flip_h="0" flip_v="0" conversion_gain="1" dol_mode="NoDol">
++    <sensor_mode name="OV01A1S_30fps" id="0" width="1288" height="800" fps="30" min_llp="0" min_fll="0" min_fps="0" max_out_width="1288" max_out_height="800" bpp="10" sensor_type="RGB_IR" pdaf_type="PDAFNone" flip_h="0" flip_v="0" conversion_gain="1" dol_mode="NoDol">
+         <pixel_array>
+-            <input width="1296" height="800" left="0" top="0"/>
+-            <output width="1296" height="800" left="0" top="0"/>
++            <input width="1288" height="800" left="0" top="0"/>
++            <output width="1288" height="800" left="0" top="0"/>
+         </pixel_array>
+         <binner h_factor="1" v_factor="1">
+-            <input width="1296" height="800" left="0" top="0"/>
+-            <output width="1296" height="800" left="0" top="0"/>
++            <input width="1288" height="800" left="0" top="0"/>
++            <output width="1288" height="800" left="0" top="0"/>
+         </binner>
+         <scaler num_factor="1" denom_factor="1">
+-            <input width="1296" height="800" left="0" top="0"/>
+-            <output width="1296" height="800" left="0" top="0"/>
++            <input width="1288" height="800" left="0" top="0"/>
++            <output width="1288" height="800" left="0" top="0"/>
+         </scaler>
+         <pdaf width="0" height="0"/>
+     </sensor_mode>
+@@ -40,7 +40,7 @@ limitations under the License.
+ <selected_resolutions>
+   <FPS value="30">
+     <sensor>
+-      <resolution width="1296" height="800" />
++      <resolution width="1288" height="800" />
+     </sensor>
+     <isys_cropped_output>
+       <resolution width="1024" height="768" />
+@@ -61,7 +61,7 @@ limitations under the License.
+       <resolution width="1280" height="720" />
+     </stills>
+     <raw>
+-      <resolution width="1296" height="800" />
++      <resolution width="1288" height="800" />
+     </raw>
+     <ir>
+       <resolution width="512" height="384" />
+@@ -73,13 +73,13 @@ limitations under the License.
+   <sis_b width="160" height="88" stream_id="60001" />
+   <sis_a width="320" height="184" stream_id="60001" />
+   <sensor vflip="0" hflip="0" mode_id="OV01A1S_30fps">
+-            <port_0 format="RG10" width="1296" height="800" />
++            <port_0 format="RG10" width="1288" height="800" />
+         </sensor>
+   <csi_be>
+-    <output format="GR10" width="1296" height="798" />
++    <output format="GR10" width="1288" height="800" />
+     <stream2mmio>
+-      <input width="1296" height="800" top="1" left="0" bottom="1" right="0" />
+-      <output width="1296" height="798" top="0" left="0" bottom="0" right="0" />
++      <input width="1288" height="800" top="1" left="0" bottom="1" right="0" />
++      <output width="1288" height="798" top="0" left="0" bottom="0" right="0" />
+     </stream2mmio>
+     <tuning_mode value="0" />
+   </csi_be>
+@@ -97,7 +97,7 @@ limitations under the License.
+       <output width="160" height="88" top="0" left="0" bottom="0" right="0" />
+     </pxl_crop_sis_b>
+     <pixelformatter>
+-      <input width="1296" height="798" top="0" left="7" bottom="2" right="9" />
++      <input width="1288" height="800" top="0" left="3" bottom="4" right="5" />
+       <output width="1280" height="796" top="0" left="0" bottom="0" right="0" />
+     </pixelformatter>
+     <sis_1_0_b>
+@@ -169,13 +169,13 @@ limitations under the License.
+   <sis_b width="128" height="96" stream_id="60001" />
+   <sis_a width="256" height="192" stream_id="60001" />
+   <sensor vflip="0" hflip="0" mode_id="OV01A1S_30fps">
+-            <port_0 format="RG10" width="1296" height="800" />
++            <port_0 format="RG10" width="1288" height="800" />
+         </sensor>
+   <csi_be>
+-    <output format="GR10" width="1296" height="798" />
++    <output format="GR10" width="1288" height="800" />
+     <stream2mmio>
+-      <input width="1296" height="800" top="1" left="0" bottom="1" right="0" />
+-      <output width="1296" height="798" top="0" left="0" bottom="0" right="0" />
++      <input width="1288" height="800" top="1" left="0" bottom="1" right="0" />
++      <output width="1288" height="798" top="0" left="0" bottom="0" right="0" />
+     </stream2mmio>
+     <tuning_mode value="0" />
+   </csi_be>
+@@ -193,7 +193,7 @@ limitations under the License.
+       <output width="128" height="96" top="0" left="0" bottom="0" right="0" />
+     </pxl_crop_sis_b>
+     <pixelformatter>
+-      <input width="1296" height="798" top="0" left="7" bottom="2" right="9" />
++      <input width="1288" height="800" top="0" left="3" bottom="4" right="5" />
+       <output width="1280" height="796" top="0" left="0" bottom="0" right="0" />
+     </pixelformatter>
+     <sis_1_0_b>
+@@ -265,13 +265,13 @@ limitations under the License.
+   <sis_b width="160" height="92" stream_id="60001" />
+   <sis_a width="320" height="184" stream_id="60001" />
+   <sensor vflip="0" hflip="0" mode_id="OV01A1S_30fps">
+-            <port_0 format="RG10" width="1296" height="800" />
++            <port_0 format="RG10" width="1288" height="800" />
+         </sensor>
+   <csi_be>
+-    <output format="GR10" width="1296" height="798" />
++    <output format="GR10" width="1288" height="800" />
+     <stream2mmio>
+-      <input width="1296" height="800" top="1" left="0" bottom="1" right="0" />
+-      <output width="1296" height="798" top="0" left="0" bottom="0" right="0" />
++      <input width="1288" height="800" top="1" left="0" bottom="1" right="0" />
++      <output width="1288" height="798" top="0" left="0" bottom="0" right="0" />
+     </stream2mmio>
+     <tuning_mode value="0" />
+   </csi_be>
+@@ -289,7 +289,7 @@ limitations under the License.
+       <output width="160" height="92" top="0" left="0" bottom="0" right="0" />
+     </pxl_crop_sis_b>
+     <pixelformatter>
+-      <input width="1296" height="798" top="0" left="7" bottom="2" right="9" />
++      <input width="1288" height="800" top="0" left="3" bottom="4" right="5" />
+       <output width="1280" height="796" top="0" left="0" bottom="0" right="0" />
+     </pixelformatter>
+     <sis_1_0_b>
+diff --git a/config/linux/ipu6/sensors/ov01a1s-uf.xml b/config/linux/ipu6/sensors/ov01a1s-uf.xml
+index ebb22ba..f2af484 100644
+--- a/config/linux/ipu6/sensors/ov01a1s-uf.xml
++++ b/config/linux/ipu6/sensors/ov01a1s-uf.xml
+@@ -16,15 +16,15 @@
+ 
+ <CameraSettings>
+     <Sensor name="ov01a1s-uf" description="OV01A1S sensor.">
+-        <MediaCtlConfig id="0" ConfigMode="AUTO" outputWidth="1296" outputHeight="798" format="V4L2_PIX_FMT_SGRBG10"><!-- RAW10 BE capture -->
+-            <format name="ov01a1s $I2CBUS" pad="0" width="1296" height="798" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
+-            <format name="Intel IPU6 CSI-2 $CSI_PORT" pad="0" width="1296" height="798" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
++        <MediaCtlConfig id="0" ConfigMode="AUTO" outputWidth="1288" outputHeight="800" format="V4L2_PIX_FMT_SGRBG10"><!-- RAW10 BE capture -->
++            <format name="ov01a1s $I2CBUS" pad="0" width="1288" height="800" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
++            <format name="Intel IPU6 CSI-2 $CSI_PORT" pad="0" width="1288" height="800" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
+ 
+             <link srcName="ov01a1s $I2CBUS" srcPad="0" sinkName="Intel IPU6 CSI-2 $CSI_PORT" sinkPad="0" enable="true"/>
+ 
+-            <format name="Intel IPU6 CSI2 BE SOC 0" pad="0" width="1296" height="798" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
+-            <format name="Intel IPU6 CSI2 BE SOC 0" pad="1" width="1296" height="798" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
+-            <selection name="Intel IPU6 CSI2 BE SOC 0" pad="1" target="V4L2_SEL_TGT_CROP" left="0" top="0" width="1296" height="798"/>
++            <format name="Intel IPU6 CSI2 BE SOC 0" pad="0" width="1288" height="800" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
++            <format name="Intel IPU6 CSI2 BE SOC 0" pad="1" width="1288" height="800" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
++            <selection name="Intel IPU6 CSI2 BE SOC 0" pad="1" target="V4L2_SEL_TGT_CROP" left="0" top="0" width="1288" height="800"/>
+ 
+             <link srcName="Intel IPU6 CSI-2 $CSI_PORT" srcPad="1" sinkName="Intel IPU6 CSI2 BE SOC 0" sinkPad="0" enable="true"/>
+             <link srcName="Intel IPU6 CSI2 BE SOC 0" srcPad="1" sinkName="Intel IPU6 BE SOC capture 0" sinkPad="0" enable="true"/>
+@@ -33,9 +33,9 @@
+             <videonode name="Intel IPU6 CSI-2 $CSI_PORT" videoNodeType="VIDEO_ISYS_RECEIVER"/>
+             <videonode name="ov01a1s $I2CBUS" videoNodeType="VIDEO_PIXEL_ARRAY"/>
+         </MediaCtlConfig>
+-        <MediaCtlConfig id="0" mediaCfg="1" ConfigMode="AUTO" outputWidth="1296" outputHeight="798" format="V4L2_PIX_FMT_SGRBG10"><!-- RAW10 BE capture -->
+-            <format name="ov01a1s $I2CBUS" pad="0" width="1296" height="798" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
+-            <format name="Intel IPU6 CSI2 $CSI_PORT" pad="0" width="1296" height="798" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
++        <MediaCtlConfig id="0" mediaCfg="1" ConfigMode="AUTO" outputWidth="1288" outputHeight="800" format="V4L2_PIX_FMT_SGRBG10"><!-- RAW10 BE capture -->
++            <format name="ov01a1s $I2CBUS" pad="0" width="1288" height="800" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
++            <format name="Intel IPU6 CSI2 $CSI_PORT" pad="0" width="1288" height="800" format="V4L2_MBUS_FMT_SGRBG10_1X10"/>
+ 
+             <link srcName="ov01a1s $I2CBUS" srcPad="0" sinkName="Intel IPU6 CSI2 $CSI_PORT" sinkPad="0" enable="true"/>
+             <link srcName="Intel IPU6 CSI2 $CSI_PORT" srcPad="1" sinkName="Intel IPU6 ISYS Capture $CAPTURE_ID" sinkPad="0" enable="true"/>
+@@ -76,7 +76,7 @@
+         <!-- <TuningMode, cmc tag, aiq tag, isp tag, others tag>  -->
+         <lardTags value="VIDEO,DFLT,DFLT,DFLT,DFLT"/>
+ 
+-        <supportedISysSizes value="1296x798"/> <!-- ascending order request -->
++        <supportedISysSizes value="1288x800"/> <!-- ascending order request -->
+         <supportedISysFormat value="V4L2_PIX_FMT_SGRBG10"/>
+         <enableAIQ value="true"/>
+         <iSysRawFormat value="V4L2_PIX_FMT_SGRBG10"/>
+-- 
+2.51.1
+
