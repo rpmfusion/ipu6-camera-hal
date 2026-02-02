@@ -6,7 +6,7 @@ Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        27.%{commitdate}git%{shortcommit}%{?dist}
+Release:        28.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Patch1:         0001-Drop-Werror.patch
@@ -98,6 +98,9 @@ fi
 
 
 %changelog
+* Mon Feb 02 2026 RPM Fusion Release Engineering <sergiomb@rpmfusion.org> - 0.0-28.20250627gitc933525
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_44_Mass_Rebuild
+
 * Wed Nov 12 2025 Kate Hsuan <hpa@redhat.com> - 0.0-27.20250627gitc933525
 - Change the output size of ov01a1s to 1288x800
 
