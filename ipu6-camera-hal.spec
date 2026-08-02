@@ -6,7 +6,7 @@ Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        28.%{commitdate}git%{shortcommit}%{?dist}
+Release:        29.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Patch1:         0001-Drop-Werror.patch
@@ -98,6 +98,9 @@ fi
 
 
 %changelog
+* Sun Aug 02 2026 RPM Fusion Release Engineering <leigh123linux@rpmfusion.org> - 0.0-29.20250627gitc933525
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_45_Mass_Rebuild
+
 * Mon Feb 02 2026 RPM Fusion Release Engineering <sergiomb@rpmfusion.org> - 0.0-28.20250627gitc933525
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_44_Mass_Rebuild
 
