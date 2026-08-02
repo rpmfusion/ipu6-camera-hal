@@ -53,7 +53,8 @@ This provides the necessary header files for IPU6 HAL development.
        -DBUILD_CAMHAL_ADAPTOR=ON \
        -DBUILD_CAMHAL_PLUGIN=ON \
        -DIPU_VERSIONS="ipu6;ipu6ep;ipu6epmtl" \
-       -DUSE_PG_LITE_PIPE=ON
+       -DUSE_PG_LITE_PIPE=ON \
+       -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 %cmake_build
 
 
