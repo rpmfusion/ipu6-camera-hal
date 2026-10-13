@@ -1,18 +1,15 @@
-%global commit c933525a6efe8229a7129b7b0b66798f19d2bef7
-%global commitdate 20250627
+%global commit 7ccab62d133e053c8628f3591b636a761f06c956
+%global commitdate 20260925
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name:           ipu6-camera-hal
 Summary:        Hardware abstraction layer for Intel IPU6
 URL:            https://github.com/intel/ipu6-camera-hal
 Version:        0.0
-Release:        29.%{commitdate}git%{shortcommit}%{?dist}
+Release:        30.%{commitdate}git%{shortcommit}%{?dist}
 License:        Apache-2.0
 
 Patch1:         0001-Drop-Werror.patch
-
-# https://github.com/intel/ipu6-camera-hal/pull/160
-Patch101:       0001-config-linux-ipu6-ov01a1s-configs-Adjust-for-new-128.patch
 
 Source0:        https://github.com/intel/%{name}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
 Source1:        60-intel-ipu6.rules
@@ -99,6 +96,10 @@ fi
 
 
 %changelog
+* Tue Oct 13 2026 Kate Hsuan <hpa@redhat.com> - 0.0-28.20260925git7ccab62
+- Update to the upstream commit 7ccab62
+- Resolves: #7562
+
 * Sun Aug 02 2026 RPM Fusion Release Engineering <leigh123linux@rpmfusion.org> - 0.0-29.20250627gitc933525
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_45_Mass_Rebuild
 
